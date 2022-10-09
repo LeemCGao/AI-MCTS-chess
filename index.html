@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Title</title>
+		<style>
+			body {
+				padding: 0 0 0 0;
+			}
+			
+			html {
+				padding: 0 0 0 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="myCanvas" width="500" height="500" style="border:1px solid #d3d3d3;">
+    		您的浏览器不支持 HTML5 canvas 标签。
+		</canvas>
+
+		<div id='gameInfo'>
+
+		</div>
+	</body>
+
+	<script src="dist/MyGo.js"></script>
+
+	<script>
+		let infoDiv = document.getElementById("gameInfo");
+
+		let offset = 30;
+		let geziWidth = 20;
+		let c = document.getElementById("myCanvas");
+		let ctx = c.getContext("2d");
+		ctx.strokeStyle = 'black';
+
+		let boardWidth = 5;
+
+		function clearDesk() {
+			ctx.fillStyle = 'white';
+			ctx.fillRect(0, 0, 500, 500);
+
+			for(let i = 0; i < boardWidth; i++) {
+				// ctx.strokeText(i, i * geziWidth - 5, geziWidth - 5);
+
+				ctx.beginPath();
+				ctx.moveTo(i * geziWidth+offset, offset);
+				ctx.lineTo(i * geziWidth+offset, offset+geziWidth * (boardWidth-1));
+				ctx.closePath();
+				ctx.stroke();
+			}
+			for(let i = 0; i < boardWidth; i++) {
+				// ctx.strokeText(i, geziWidth - 15, geziWidth * i + 5);
+
+				ctx.beginPath();
+				ctx.moveTo(offset, offset+geziWidth * i);
+				ctx.lineTo(offset+geziWidth * (boardWidth-1), offset+geziWidth * i);
+				ctx.closePath();
+				ctx.stroke();
+			}
+		};
+		clearDesk();
+
+		function drawPiece(x,y,color) {
+			ctx.beginPath();
+			ctx.arc(offset+geziWidth * x, offset+geziWidth * y, geziWidth/2, 0, Math.PI * 2, true);
+			ctx.closePath();
+			ctx.stroke();
+			if(color == 1) {
+				ctx.fillStyle = 'black';
+			} else {
+				ctx.fillStyle = 'white';
+			}
+			ctx.fill();
+		};
+
+		function drawState(state) {
+			clearDesk();
+			let cellMap = state.cellMap;
+			for(let idx in cellMap){
+				let xy = game.curState.idx2xy(idx);
+				drawPiece(xy[0],xy[1],cellMap[idx]);
+			}
+
+			drawInfo();
+		};
+
+		function drawInfo(){
+			let str = '';
+
+			// let blocks = game.curState.blocks;
+			// for(let i=0; i<blocks.length; i++){
+			// 	let block = blocks[i];
+			// 	str += '<br/>zi: ';
+			// 	let cell = block;
+			// 	do{
+			// 		str += '('+cell.x+','+cell.y+') ';
+			// 		cell = cell.next;
+			// 	}while(cell);
+			// 	str += 'qi: ';
+			// 	for(let idx in block.qi){
+			// 		let xy = game.curState.idx2xy(idx);
+			// 		str += '('+xy[0]+','+xy[1]+') ';
+			// 	}
+			// }
+
+			str += 'rate: ' + game.node.Q/game.node.N;
+
+			infoDiv.innerHTML = str;
+		}
+
+		c.addEventListener('click', function(e) {
+			let canvasX = e.offsetX - offset;
+			let canvasY = e.offsetY - offset;
+
+			let x = Math.round(canvasX / geziWidth);
+			let y = Math.round(canvasY / geziWidth);
+
+			console.log(x+' '+y);
+
+			if(x < 0 || x >= boardWidth || y < 0 || y >= boardWidth) {
+				return;
+			}
+
+			if(game.curState.cellMap[game.curState.xy2idx(x,y)]) {
+				return;
+			}
+
+			game.placePiece(x, y, game.curColor);
+
+			drawState(game.curState);
+
+		}, false);
+
+
+		let game = new MyGo.Game(boardWidth);
+		
+	</script>
+
+</html>
